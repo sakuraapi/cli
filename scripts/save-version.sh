@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+cat package.json \
+  | grep version \
+  | head -1 \
+  | awk -F: '{ print $2 }' \
+  | sed 's/[",]//g' \
+  | tr -d '[[:space:]]' > ./dist/version

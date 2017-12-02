@@ -1,0 +1,10 @@
+{
+  "verbose": true,
+  "ignore": [
+    "dist/",
+    "dist/**/*",
+    "tmp/",
+    "tmp/**/*"
+  ],
+  "ext": "ts, json"
+}

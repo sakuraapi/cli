@@ -1,0 +1,35 @@
+{
+  "extends": "tslint:latest",
+  "defaultSeverity": "warning",
+  "rules": {
+    "curly": true,
+    "member-access": [
+      true,
+      "no-public"
+    ],
+    "quotemark": [
+      true,
+      "single",
+      "avoid-escape"
+    ],
+    "max-classes-per-file": true,
+    "max-line-length": [
+      true,
+      140
+    ],
+    "trailing-comma": [
+      true,
+      {
+        "multiline": "never",
+        "singleline": "never"
+      }
+    ],
+    "prefer-object-spread": false,
+    "no-object-literal-type-assertion": false
+  },
+  "jsRules": {
+    "curly": true
+  },
+  "rulesDirectory": [
+  ]
+}
