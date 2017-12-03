@@ -1,0 +1,9 @@
+{
+  "build": "scripts/build.sh",
+  "docker:local-compose-up": "scripts/docker:local-compose-up.sh",
+  "docker:local-compose-down": "docker-compose --file docker/local-test.yml down",
+  "install": "chmod u+x scripts/*.sh || true ; scripts/install.sh",
+  "start": "scripts/start.sh",
+  "test": "scripts/test.sh",
+  "test:db": "scripts/test:db.sh"
+}
