@@ -53,6 +53,15 @@ export class UI {
     return answer.selection;
   }
 
+  boxedMessage(msg: string, msgColor = 'yellow', lineColor = 'yellow') {
+    const cols = process.stdout.columns;
+    const len = msg.length < cols ? msg.length : cols;
+
+    process.stdout.write('—'.repeat(len)[lineColor] + '\n');
+    console.log(msg[msgColor]);
+    process.stdout.write('—'.repeat(len)[lineColor] + '\n');
+  }
+
   error(msg: any[] | string, exitCode: number = 1, spaces?: number) {
     this.print(msg, 'red', spaces);
     process.exit(exitCode);

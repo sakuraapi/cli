@@ -4,6 +4,7 @@ import * as glob from 'glob';
 import * as memFs from 'mem-fs';
 import * as editor from 'mem-fs-editor';
 import {join} from 'path';
+import {cd, mkdir} from 'shelljs';
 import {promisify} from 'util';
 import {IArgs} from './i-args';
 import {UI} from './ui';
@@ -112,7 +113,7 @@ export class File {
     const diff = diffLines(disk, mem);
 
     let lc = 1;
-    let result = `${lc++}: `;
+    let result = `${lc++}:\t`;
     for (const part of diff) {
       const color = (part.added)
         ? 'green'
@@ -120,7 +121,7 @@ export class File {
 
       for (const c of part.value) {
         result += (c === '\n')
-          ? `\n${lc++}: `.white
+          ? `\n${lc++}:\t`.white
           : c[color];
 
       }
@@ -171,6 +172,15 @@ export class File {
     }
   }
 
+  newCwd(path: string) {
+    if (!path) {
+      return;
+    }
+
+    mkdir('-p', path);
+    cd(path);
+  }
+
   write(path: string, content: string | Buffer) {
     this.memEditor.write(path, content);
   }
@@ -186,7 +196,9 @@ export class File {
   async verifyEmpty(): Promise<string[]> {
     const files = await rd(process.cwd()) || [];
     if (files.length > 0 && !this.args.skipDirectoryCheck) {
-      await this.ui.exitQuestion(`There are already ${files.length} files in ${process.cwd()}. Are you sure you want to proceed to create your project here?`);
+      this.ui.warn(`sapi will not write changes to any files until it is complete. If you already have SakuraAPI`);
+      this.ui.warn(`setup in this directory, sapi will confirm conflicts before making any changes.`);
+      await this.ui.exitQuestion(`There are ${files.length} files in ${process.cwd()}. Proceed?`, false, 1, {default: true});
     }
     return files;
   }

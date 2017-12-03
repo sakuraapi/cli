@@ -24,7 +24,7 @@ export class Templates {
 
         const content = this.state.file.getText(realFilePath);
         const template = await rf(templateFilePath, 'utf8');
-        const rendered = ejs.render(template, prefs);
+        const rendered = this.removeEjsEmptyCommentLines(ejs.render(template, prefs));
 
         if (content) {
           // the file exists already
@@ -33,7 +33,7 @@ export class Templates {
 
           } else {
             this.state.ui.warn(`${realFilePath} conflict`);
-            const fileResolution = await this.state.ui.listExpand('Resolve package.json conflict (h for help):', this.getConflictResolutionChoices());
+            const fileResolution = await this.state.ui.listExpand('Resolve conflict (h for help):', this.getConflictResolutionChoices());
             switch (fileResolution) {
               case 'keep':
                 this.state.ui.success(`keeping ${realFilePath}`);
@@ -59,6 +59,24 @@ export class Templates {
     }
   }
 
+  private removeEjsEmptyCommentLines(source: string): string {
+    const parts = source.split('\n');
+    let results = [];
+    for (let part of parts) {
+
+      if (part.trim().startsWith('//-') && part.trim().length > 3) {
+        part = part.replace('//-', '');
+      }
+
+      if (part.trim() !== '//-') {
+        results.push(part);
+      }
+
+
+    }
+    return results.join('\n').trim() + '\n';
+  }
+
   private getConflictResolutionChoices(): any[] {
     return [
       {
@@ -80,11 +98,11 @@ export class Templates {
   }
 
   private saveFile(filePath, content, msg): void {
-    this.state.file.write(filePath, content);
-
-    if (content.length > 0) {
-      // don't report the creation of zero length files
+    if (content && content.trim().length === 0) {
+      this.state.ui.warn(`${filePath} skipped, no content`);
+    } else if (content.length > 0) {
       this.state.ui.success(`${filePath} ${msg}`);
+      this.state.file.write(filePath, content);
     }
   }
 }

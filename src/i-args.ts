@@ -5,5 +5,4 @@ export interface IArgs {
   save: boolean;
   silent: boolean;
   skipDirectoryCheck: boolean;
-  skipGitInit: boolean;
 }

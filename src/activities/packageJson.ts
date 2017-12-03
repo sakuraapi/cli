@@ -41,10 +41,12 @@ export class PackageJson {
       const baseTemplatePath = [__dirname, '..', 'template-package.json'];
       const devDependencies = JSON.parse(await rf(join(...baseTemplatePath, 'dev-dependencies.json'), 'utf8'));
       const depdendencies = JSON.parse(await rf(join(...baseTemplatePath, 'dependencies.json'), 'utf8'));
+      const scripts = JSON.parse(await rf(join(...baseTemplatePath, 'scripts.json'), 'utf8'));
 
       this.state.ui.message('Updating package.json devDependencies');
       await this.updateDependencies('devDependencies', devDependencies);
       await this.updateDependencies('dependencies', depdendencies);
+      await this.updateDependencies('scripts', scripts);
 
       this.state.ui.message('Done updating package.json');
 
@@ -59,6 +61,13 @@ export class PackageJson {
 
       this.sortJsonParts(disk);
       this.sortJsonParts(this.json);
+
+      if (prefs.authRole === 'none') {
+        delete this.json.dependencies['@sakuraapi/auth-audience'];
+        delete this.json.dependencies['@sakuraapi/auth-native-authority'];
+      } else if (prefs.authRole === 'audience') {
+        delete this.json.dependencies['@sakuraapi/auth-native-authority'];
+      }
 
       if (!disk) {
         this.state.ui.message('The following package.json file will be created:');
@@ -105,6 +114,29 @@ export class PackageJson {
     target.dependencies = this.sort(target, 'dependencies');
     target.devDependencies = this.sort(target, 'devDependencies');
     target.scripts = this.sort(target, 'scripts');
+
+    const copy = JSON.parse(JSON.stringify(target));
+    Object.keys(target).forEach((key) => delete target[key]);
+
+    // opinionated order
+    target.name = copy.name;
+    target.version = copy.version;
+    target.description = copy.description;
+    target.author = copy.author;
+    target.license = copy.license;
+    target.main = copy.main;
+    target.scripts = copy.scripts;
+
+    // alphabetical order
+    for (const key of Object.keys(copy)) {
+      if (!target[key] && key !== 'dependencies' && key !== 'devDependencies') {
+        target[key] = copy[key];
+      }
+    }
+
+    // put at the end
+    target.dependencies = copy.dependencies;
+    target.devDependencies = copy.devDependencies;
   }
 
   private getConflictChoices(): any[] {

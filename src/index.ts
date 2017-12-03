@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 import 'colors';
 import {version} from 'commander';
 import {readFile} from 'fs';
@@ -10,6 +11,7 @@ import {Templates} from './activities/templates';
 import {File} from './file';
 import {Git} from './git';
 import {IState} from './i-state';
+import {Npm} from './npm';
 import {UI} from './ui';
 
 const rf = promisify(readFile);
@@ -43,14 +45,14 @@ class Main {
       .description('Command Line Interface for setting up and maintaining SakuraAPI projects')
       .option('-d, --dryRun', 'Does everything, but skips the actual merge to master')
       .option('-s, --silent', 'Do not prompt, accept confirmations and default values (or overrides if given as arguments)')
-      .option('--skipDirectoryCheck', 'Skips the check to make sure the directory is empty')
-      .option('--skipGitInit', 'Skips initializing/reinitializing git');
+      .option('--skipDirectoryCheck', 'Skips the check to make sure the directory is empty');
 
     args
-      .command('init')
+      .command('init [path]')
       .description('Initialize a new SakuraAPI project in the current directory')
       .action(this.init.bind(this))
       .option('--save', 'Saves your preferences as ~/.sapi')
+      .option('--skipNpmInit', 'Skips `npm init`')
       .option('--skipPackageJson', 'Skips initializing package.json')
       .option('--acceptDefaults', 'Accepts all default preferences');
 
@@ -59,6 +61,7 @@ class Main {
       .description('Update or initialize just the package.json file')
       .action(this.packageUpdate.bind(this))
       .option('--save', 'Saves your preferences as ~/.sapi')
+      .option('--skipNpmInit', 'Skips `npm init`')
       .option('--acceptDefaults', 'Accepts all default preferences');
 
     args
@@ -78,24 +81,41 @@ class Main {
     if (!process.argv.slice(2).length || (this.state.args as any).args.length === 0) this.state.args.help();
   }
 
-  async init(cmd: IInitCmdOptions) {
+  async init(path: string, cmd: IInitCmdOptions) {
+    const npm = new Npm(this.state);
+    const packageJson = new PackageJson(this.state);
+    const preferences = new Preferences(this.state);
+    const templates = new Templates(this.state);
+
+    this.state.file.newCwd(path);
 
     const cwdFiles = await this.state.file.verifyEmpty();
     await this.state.git.init(cwdFiles);
 
-    const preferences = await new Preferences(this.state).gather(cmd);
-    await new PackageJson(this.state).update(preferences, cmd);
-    await new Templates(this.state).createFiles(preferences, cmd);
+    const config = await preferences.gather(cmd);
 
-    this.saveToDisk();
+    await packageJson.update(config, cmd);
+    await templates.createFiles(config, cmd);
+
+    await this.saveToDisk();
+    await npm.init(cmd);
+
+    if (!npm.dockerCheck()) {
+      this.state.ui.boxedMessage('Unable to find docker in your path. This project depends on docker.');
+    }
+
+    this.state.ui.success(`SakuraAPI project setup. You should be able to 'npm start' then browse to http://localhost:8001/api`);
   }
 
   async packageUpdate(cmd: IInitCmdOptions) {
+    const npm = new Npm(this.state);
+    const preferences = new Preferences(this.state);
 
-    const preferences = await new Preferences(this.state).gather(cmd);
-    await new PackageJson(this.state).update(preferences, cmd);
+    const config = await preferences.gather(cmd);
+    await new PackageJson(this.state).update(config, cmd);
 
-    this.saveToDisk();
+    await this.saveToDisk();
+    await npm.init(cmd);
   }
 
   private cleanup() {
