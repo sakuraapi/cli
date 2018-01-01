@@ -1,7 +1,7 @@
 import {IRoutableLocals, Routable, Route, SakuraApiRoutable} from '@sakuraapi/api';
 import {NextFunction, Request, Response} from 'express';
 import {OK, SERVER_ERROR} from '../lib/http-status';
-import {LogService} from '../services/log';
+import {LogService} from '../services/log-service';
 
 @Routable({
   baseUrl: '/'

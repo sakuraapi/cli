@@ -2,7 +2,7 @@
   "spec_dir": "",
   "spec_files": [
     "!node_modules/*[sS]pec.js",
-    "dist/**/**/*.spec.js"
+    "dist/src/**/**/*.spec.js"
   ],
   "helpers": [
     "dist/spec/helpers/**/*.js"

@@ -1,44 +1,49 @@
 import {SakuraApi} from '@sakuraapi/api';
-import {addAuthAudience, IAuthAudienceOptions} from '@sakuraapi/auth-audience/lib';
+import {json} from 'body-parser';
 import * as helmet from 'helmet';
 import {sign} from 'jsonwebtoken';
-import {authExcludedRoutes} from '../../src/lib/auth-excluded-routes';
 
 export const baseUri = '/testApi';
-
 export const noNetwork = !!process.env.NO_NETWORK || false;
+process.on('unhandledRejection', err => {
+  console.log('Caught unhandledRejection');
+  console.log(err);
+});
+
+process.on('uncaughtException', err => {
+  console.log('Caught uncaughtException');
+  console.log(err);
+});
 
 if (noNetwork) {
   // tslint:disable-next-line
   console.log('NO_NETWORK mode enabled'.yellow.underline);
 }
 
+/**
+ * Place at the top of a test method to skip that test if you start the tests with NO_NETWORK=true as
+ * an environment variable
+ * @param {string} msg
+ */
 export function skipNoNetwork(msg?: string) {
   if (noNetwork) {
     pending(msg || 'skipping, no network');
   }
 }
 
-export function testSapi(di: { models: any[], routables: any[] }): SakuraApi {
+export function testSapi(di: { models?: any[], plugins?: any[], providers?: any[], routables?: any[] }): SakuraApi {
 
-  const authAudienceOptions: IAuthAudienceOptions = {
-    excludedRoutes: authExcludedRoutes
-  };
   const sapi = new SakuraApi({
     baseUrl: '/testApi',
     configPath: 'dist/spec/config/environment.json',
-    models: di.models,
-    plugins: [
-      {
-        options: authAudienceOptions,
-        order: 1,
-        plugin: addAuthAudience
-      }
-    ],
-    routables: di.routables
+    models: di.models || [],
+    plugins: di.plugins || [],
+    providers: di.providers || [],
+    routables: di.routables || []
   });
 
   sapi.addMiddleware(helmet(), 0);
+  sapi.addMiddleware(json());
 
   if (process.env.TRACE_REQ) {
     sapi.addMiddleware((req, res, next) => {

@@ -7,7 +7,7 @@ localReporter();
 function localReporter() {
   class CustomProcessor extends DisplayProcessor {
     displayJasmineStarted(info: SuiteInfo, log: string): string {
-      return `Jasmine ${log}`.blue;
+      return `${log}`.blue;
     }
   }
 

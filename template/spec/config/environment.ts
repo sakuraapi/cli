@@ -3,11 +3,13 @@ import {dbs} from '../../src/config/bootstrap/db';
 // tslint:disable:max-line-length
 module.exports = {
   dbConnections: [
+    //-<%if(authRole === 'issuer') {%>
     {
       mongoClientOptions: {},
-      name: dbs.test.db,
+      name: dbs.user.db,
       url: `mongodb://${process.env.TEST_MONGO_DB_ADDRESS}:${process.env.TEST_MONGO_DB_PORT}/test`
     }
+    //-<%}%>
   ],
   server: {
     address: '127.0.0.1',
@@ -24,8 +26,9 @@ module.exports = {
   },
   smtpOptions: {
     dateFormat: process.env.SMTP_DATE_FORMAT || 'MMMM D, YYYY (UTC offset: ZZ)',
-    from: process.env.SMTP_FROM || 'ILB UNIT TESTING',
-    templates: './spec/templates/email'
+    forgotPasswordTokenUrl: 'test/',
+    from: process.env.SMTP_FROM || 'UNIT TESTING',
+    newUserTokenUrl: 'test/'
   }
 };
 // tslint:enable:max-line-length

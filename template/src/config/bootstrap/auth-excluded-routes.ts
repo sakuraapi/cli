@@ -2,7 +2,7 @@
 export const authExcludedRoutes = [
   {
     method: {POST: true},
-    regex: /^\/user/
+    regex: /^\/auth\/native$/
   },
   {
     method: {POST: true},
