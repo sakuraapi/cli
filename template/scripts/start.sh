@@ -3,5 +3,5 @@
 set -ex
 npm run build
 npm run docker:local-compose-up
-nodemon --exec "npm run build ; cd dist/ ; node ." ; \
-  npm run docker:local-compose-down
+nodemon --exec "./scripts/nodemon.sh"
+npm run docker:local-compose-down

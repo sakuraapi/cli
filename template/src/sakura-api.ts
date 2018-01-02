@@ -1,14 +1,13 @@
 import {SakuraApi} from '@sakuraapi/api';
 //-<%if(authRole === 'issuer' || authRole === 'audience') {%>
-import {addAuthAudience, IAuthAudienceOptions} from '@sakuraapi/auth-audience/lib';
+import {addAuthAudience, IAuthAudienceOptions} from '@sakuraapi/auth-audience';
 //-<%}%>
 //-<%if(authRole === 'issuer') {%>
 import {addAuthenticationAuthority, IAuthenticationAuthorityOptions} from '@sakuraapi/auth-native-authority';
 //-<%}%>
+import {json} from 'body-parser';
 import * as cors from 'cors';
-//-<%if(authRole === 'issuer') {%>
-import {NextFunction, Request, Response} from 'express';
-//-<%}%>
+import * as debugInit from 'debug';
 import * as helmet from 'helmet';
 import {ConfigApi} from './api/config.api';
 //-<%if(authRole === 'issuer' || authRole === 'audience') {%>
@@ -17,15 +16,25 @@ import {authExcludedRoutes} from './config/bootstrap/auth-excluded-routes';
 import {BootstrapIndexes} from './config/bootstrap/bootstrap-indexes';
 //-<%if(authRole === 'issuer') {%>
 import {dbs} from './config/bootstrap/db';
+import {EmailService, EmailServiceFactory} from './services/email-service';
 //-<%}%>
-import {LogService} from './services/log';
+import {LogService} from './services/log-service';
+
+const debug = debugInit('app:bootstrap');
 
 export class Bootstrap {
+  //-<%if(authRole === 'issuer') {%>
+  private emailService: EmailService;
+  //-<%}%>
   private log: LogService;
   private sapi: SakuraApi;
   private shuttingDown = false;
 
   async boot(): Promise<SakuraApi> {
+    debug('boot called');
+
+    process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+
     this.sapi = new SakuraApi({
       baseUrl: '/api',
       models: [],
@@ -45,6 +54,10 @@ export class Bootstrap {
         //-<%}%>
       ],
       providers: [
+        //-<%if(authRole === 'issuer') {%>
+        EmailService,
+        EmailServiceFactory,
+        //-<%}%>
         LogService
       ],
       routables: [
@@ -53,10 +66,14 @@ export class Bootstrap {
     });
 
     this.log = this.sapi.getProvider(LogService);
+    //-<%if(authRole === 'issuer') {%>
+    this.emailService = this.sapi.getProvider(EmailService);
+    //-<%}%>
 
     // SakuraApi setup
     this.sapi.addMiddleware(cors(this.sapi.config.cors), 0);
     this.sapi.addMiddleware(helmet(), 0);
+    this.sapi.addMiddleware(json());
 
     // Add debug tracing
     if (this.sapi.config.TRACE_REQ === 'true') {
@@ -86,6 +103,8 @@ export class Bootstrap {
   }
 
   async shutdownServer(signal: string): Promise<void> {
+    debug(`shutdownServer called by ${signal}`);
+
     if (this.shuttingDown) {
       return;
     }
@@ -112,10 +131,12 @@ export class Bootstrap {
   //-<%}%>
   //-<%if(authRole === 'issuer') {%>
   private authNativeAuthorityOptions(): IAuthenticationAuthorityOptions {
+    // SakuraApi providers are not available until after SakuraApi is constructed and initialized, so wrapper functions
+    // are used that point to the EmailService that will be available once the bootstrap is completed.
     return {
       authDbConfig: dbs.authentication,
       defaultDomain: 'default',
-      endpoints: {create: 'users'},
+      endpoints: {},
       onChangePasswordEmailRequest: this.onChangePasswordEmailRequest.bind(this),
       onForgotPasswordEmailRequest: this.onForgotPasswordEmailRequest.bind(this),
       onResendEmailConfirmation: this.onResendEmailConfirmation.bind(this),
@@ -124,20 +145,20 @@ export class Bootstrap {
     };
   }
 
-  private async onChangePasswordEmailRequest(user: any, req: Request, res: Response): Promise<void> {
-    // send email if user requests password change
+  private onChangePasswordEmailRequest() {
+    (this.emailService as any).onChangePasswordEmailRequest(...arguments);
   }
 
-  private async onForgotPasswordEmailRequest(user: any, token: string, req: Request, res: Response): Promise<void> {
-    // send email if user forgot password
+  private onForgotPasswordEmailRequest() {
+    (this.emailService as any).onForgotPasswordEmailRequest(...arguments);
   }
 
-  private async onResendEmailConfirmation(user: any, token: string, req: Request, res: Response): Promise<void> {
-    // send email if user requests resend of email confirmation
+  private onResendEmailConfirmation() {
+    (this.emailService as any).onResendEmailConfirmation(...arguments);
   }
 
-  private async onUserCreated(user: any, token: string, req: Request, res: Response): Promise<void> {
-    // send email when new user is created with confirmation token
+  private onUserCreated() {
+    (this.emailService as any).onUserCreated(...arguments);
   }
 
   //-<%}%>

@@ -3,7 +3,7 @@ import 'colors';
 import * as fs from 'fs';
 import * as util from 'util';
 import {Bootstrap} from './sakura-api';
-import {LogService} from './services/log';
+import {LogService} from './services/log-service';
 
 process.on('unhandledRejection', err => {
   console.log('Caught unhandledRejection');

@@ -9,15 +9,14 @@
     "noLib": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "outDir": "dist/src"
+    "outDir": "dist"
   },
   "include": [
-    "src/**/*"
+    "src/**/*.spec.ts",
+    "spec/**/*"
   ],
   "exclude": [
     "dist",
-    "node_modules",
-    "src/**/*.spec.ts",
-    "spec/**/*"
+    "node_modules"
   ]
 }

@@ -24,7 +24,13 @@ export class Templates {
 
         const content = this.state.file.getText(realFilePath);
         const template = await rf(templateFilePath, 'utf8');
-        const rendered = this.removeEjsEmptyCommentLines(ejs.render(template, prefs));
+
+        let rendered;
+        if (realFilePath.endsWith('ejs')) {
+          rendered = template;
+        } else {
+          rendered = this.removeEjsEmptyCommentLines(ejs.render(template, prefs));
+        }
 
         if (content) {
           // the file exists already
@@ -71,7 +77,6 @@ export class Templates {
       if (part.trim() !== '//-') {
         results.push(part);
       }
-
 
     }
     return results.join('\n').trim() + '\n';

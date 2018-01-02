@@ -6,9 +6,9 @@
   "body-parser": "^1.17.1",
   "colors": "^1.1.2",
   "cors": "^2.8.3",
-  "debug": "^2.6.8",
+  "debug": "^3.1.0",
   "ejs": "^2.5.6",
-  "email-templates": "^2.6.0",
+  "email-templates": "^3.2.0",
   "encodeurl": "^1.0.1",
   "express": "^4.15.2",
   "helmet": "^3.6.0",
@@ -22,5 +22,5 @@
   "urlsafe-base64": "^1.0.0",
   "uuid": "^3.1.0",
   "winston": "^2.4.0",
-  "winston-aws-cloudwatch": "^1.6.0"
+  "winston-aws-cloudwatch": "^2.0.0"
 }

@@ -8,7 +8,8 @@ import {dbs} from './bootstrap/db';
  * MongoDB Environmental Variable Configuration and Defaults
  * Provide a custom MongoDB connection URL by setting environmental variable MONGO_DB_CONN, otherwise
  * a simple connection url will be used based on the environmental variables or defaults set below.
- ***********************************************************************************************************************/
+ * *********************************************************************************************************************
+ */
 const MONGO_DB_ADDRESS = process.env.MONGO_DB_ADDRESS || 'localhost';
 const MONGO_DB_PORT = process.env.MONGO_DB_PORT || '37001';
 const MONGO_DB_CONN = process.env.MONGO_DB_CONN || null;
@@ -124,7 +125,9 @@ module.exports = {
   },
   smtpOptions: {
     dateFormat: process.env.SMTP_DATE_FORMAT || 'MMMM D, YYYY h:mm A (UTC: ZZ)',
-    from: process.env.SMTP_FROM || 'LOCAL Test',
+    forgotPasswordTokenUrl: 'http://localhost:4200/forgot-password',
+    from: process.env.SMTP_FROM || 'LOCAL Test<none@do-not-reply>',
+    newUserTokenUrl: 'http://localhost:4200/confirm-email',
     templates: './config/templates/email'
   }
 };

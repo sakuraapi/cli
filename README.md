@@ -22,4 +22,14 @@ You can also run `sapi init` over an existing project and it will give you the o
 
 # Bugs and requests:
 
-Please report bugs and reports here: https://github.com/sakuraapi/cli
+Please report bugs and reports here: https://github.com/sakuraapi/cli/issues
+
+# Contribution
+[![CLA assistant](https://cla-assistant.io/readme/badge/sakuraapi/cli)](https://cla-assistant.io/sakuraapi/cli)
+
+* Sign the Contributor License Agreement (CLA)
+* Fork the project; make your contribution (don't forget to write your unit-tests); do a pull request back to develop (pull updates frequently to not fall too far behind)
+* Before heading off to work on something, considering collaborating first by either (1) opening an issue or (2) starting a conversation on gitter or in the Google forum that leads to back to (1)
+* All work should be done against an issue (https://github.com/sakuraapi/cli/issues)
+* All contributions require unit-tests
+* Use the linter (npm run lint) to verify you comply with the style guide
