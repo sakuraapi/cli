@@ -91,8 +91,19 @@ export class PackageJson {
       }
     }
 
+    this.pruneJson(prefs);
+
     // write it to memFS
     this.state.file.writeJson('package.json', this.json);
+  }
+
+  private pruneJson(prefs: IPreferences) {
+    if (prefs.authRole !== 'issuer') {
+      delete this.json.dependencies['email-templates'];
+      delete this.json.dependencies['nodemailer'];
+      delete this.json.devDependencies['@types/email-templates'];
+      delete this.json.devDependencies['"@types/nodemailer'];
+    }
   }
 
   private sort(target: any, field: string): any {
