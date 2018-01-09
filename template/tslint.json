@@ -3,6 +3,7 @@
   "defaultSeverity": "warning",
   "rules": {
     "curly": true,
+    "import-spacing": false,
     "member-access": [
       true,
       "no-public"

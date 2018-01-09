@@ -1,9 +1,19 @@
-import {Injectable, SakuraApiInjectable} from '@sakuraapi/api';
-import {hostname} from 'os';
-import * as request from 'request-promise-native';
-import {Logger, LoggerInstance, transports} from 'winston';
+import {
+  Injectable,
+  SakuraApi,
+  SapiInjectableMixin
+}                                from '@sakuraapi/api';
+import {hostname}                from 'os';
+import * as request              from 'request-promise-native';
+import {
+  Logger,
+  LoggerInstance,
+  transports
+}                                from 'winston';
 import * as winstonAwsCloudWatch from 'winston-aws-cloudwatch';
-import {errorToJsonString} from '../lib/error-to-json-string';
+import {errorToJsonString}       from '../lib/error-to-json-string';
+
+export {SakuraApi};
 
 export type levels = 'error' | 'warn' | 'info' | 'verbose' | 'debug' | 'silly';
 
@@ -35,7 +45,7 @@ export type levels = 'error' | 'warn' | 'info' | 'verbose' | 'debug' | 'silly';
  * are whatever the properties are in the documentation for that transport.
  */
 @Injectable()
-export class LogService extends SakuraApiInjectable {
+export class LogService extends SapiInjectableMixin() {
 
   private static city = 'unacquired';
   private static country = 'unacquired';

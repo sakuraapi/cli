@@ -56,9 +56,9 @@
     "vinyl": "^2.1.0"
   },
   "devDependencies": {
-    "@sakuraapi/api": "^0.7.1",
-    "@sakuraapi/auth-audience": "^0.2.4",
-    "@sakuraapi/auth-native-authority": "^0.3.0-11",
+    "@sakuraapi/api": "^0.8.0",
+    "@sakuraapi/auth-audience": "^0.3.0",
+    "@sakuraapi/auth-native-authority": "^0.3.0-13",
     "@types/colors": "^1.1.3",
     "@types/commander": "^2.11.0",
     "@types/diff": "^3.2.2",

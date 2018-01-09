@@ -1,16 +1,25 @@
 //-<%if (authRole === 'issuer') {%>
-import {Injectable, SakuraApiInjectable} from '@sakuraapi/api';
-import * as debugInit from 'debug';
-import * as Email from 'email-templates';
-import {Request, Response} from 'express';
+import {
+  Injectable,
+  SakuraApi,
+  SapiInjectableMixin
+}                        from '@sakuraapi/api';
+import * as debugInit    from 'debug';
+import * as Email        from 'email-templates';
+import {
+  Request,
+  Response
+}                        from 'express';
 import {createTransport} from 'nodemailer';
-import {join} from 'path';
-import {LogService} from './log-service';
+import {join}            from 'path';
+import {LogService}      from './log-service';
+
+export {SakuraApi};
 
 const debug = debugInit('profile:email');
 
 @Injectable()
-export class EmailServiceFactory extends SakuraApiInjectable {
+export class EmailServiceFactory extends SapiInjectableMixin() {
 
   private email: Email;
 
@@ -37,7 +46,7 @@ export class EmailServiceFactory extends SakuraApiInjectable {
 }
 
 @Injectable()
-export class EmailService extends SakuraApiInjectable {
+export class EmailService extends SapiInjectableMixin() {
 
   private email: Email;
   private emailOptions = {
