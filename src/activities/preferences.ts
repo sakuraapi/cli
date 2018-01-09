@@ -1,12 +1,19 @@
 import {randomBytes as randomBytesCb} from 'crypto';
-import {readFile, writeFile} from 'fs';
-import {homedir, hostname, userInfo} from 'os';
-import {join} from 'path';
-import * as semVer from 'semver';
-import {promisify} from 'util';
-import * as validateNpmName from 'validate-npm-package-name';
-import {IState} from '../i-state';
-import {PackageJson} from './packageJson';
+import {
+  readFile,
+  writeFile
+}                                     from 'fs';
+import {
+  homedir,
+  hostname,
+  userInfo
+}                                     from 'os';
+import {join}                         from 'path';
+import * as semVer                    from 'semver';
+import {promisify}                    from 'util';
+import * as validateNpmName           from 'validate-npm-package-name';
+import {IState}                       from '../i-state';
+import {PackageJson}                  from './packageJson';
 
 const randomBytes = promisify(randomBytesCb);
 const rf = promisify(readFile);
@@ -96,6 +103,7 @@ export class Preferences {
       .match(/[!-_a-~]/gi)
       .join('')
       .replace(`\\`, '')
+      .replace(`'`, '')
       .substring(0, 32);
   }
 

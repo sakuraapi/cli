@@ -1,24 +1,31 @@
-import {SakuraApi} from '@sakuraapi/api';
+import {SakuraApi}        from '@sakuraapi/api';
 //-<%if(authRole === 'issuer' || authRole === 'audience') {%>
-import {addAuthAudience, IAuthAudienceOptions} from '@sakuraapi/auth-audience';
+import {
+  addAuthAudience,
+  AuthAudience,
+  IAuthAudienceOptions
+}                         from '@sakuraapi/auth-audience';
 //-<%}%>
 //-<%if(authRole === 'issuer') {%>
-import {addAuthenticationAuthority, IAuthenticationAuthorityOptions} from '@sakuraapi/auth-native-authority';
+import {
+  addAuthenticationAuthority,
+  IAuthenticationAuthorityOptions
+}                         from '@sakuraapi/auth-native-authority';
 //-<%}%>
-import {json} from 'body-parser';
-import * as cors from 'cors';
-import * as debugInit from 'debug';
-import * as helmet from 'helmet';
-import {ConfigApi} from './api/config.api';
-//-<%if(authRole === 'issuer' || authRole === 'audience') {%>
-import {authExcludedRoutes} from './config/bootstrap/auth-excluded-routes';
-//-<%}%>
+import {json}             from 'body-parser';
+import * as cors          from 'cors';
+import * as debugInit     from 'debug';
+import * as helmet        from 'helmet';
+import {ConfigApi}        from './api/config.api';
 import {BootstrapIndexes} from './config/bootstrap/bootstrap-indexes';
 //-<%if(authRole === 'issuer') {%>
-import {dbs} from './config/bootstrap/db';
-import {EmailService, EmailServiceFactory} from './services/email-service';
+import {dbs}              from './config/bootstrap/db';
+import {
+  EmailService,
+  EmailServiceFactory
+}                         from './services/email-service';
 //-<%}%>
-import {LogService} from './services/log-service';
+import {LogService}       from './services/log-service';
 
 const debug = debugInit('app:bootstrap');
 
@@ -123,9 +130,7 @@ export class Bootstrap {
 
   //-<%if(authRole === 'issuer' || authRole === 'audience') {%>
   private authAudienceOptions(): IAuthAudienceOptions {
-    return {
-      excludedRoutes: authExcludedRoutes
-    };
+    return {};
   }
 
   //-<%}%>
@@ -135,6 +140,7 @@ export class Bootstrap {
     // are used that point to the EmailService that will be available once the bootstrap is completed.
     return {
       authDbConfig: dbs.authentication,
+      authenticator: [AuthAudience],
       defaultDomain: 'default',
       endpoints: {},
       onChangePasswordEmailRequest: this.onChangePasswordEmailRequest.bind(this),
