@@ -1,4 +1,5 @@
 import {randomBytes as randomBytesCb} from 'crypto';
+import * as debugInit                 from 'debug';
 import {
   readFile,
   writeFile
@@ -12,9 +13,11 @@ import {join}                         from 'path';
 import * as semVer                    from 'semver';
 import {promisify}                    from 'util';
 import * as validateNpmName           from 'validate-npm-package-name';
-import {IState}                       from '../i-state';
+import {IArgs}                        from '../i-args';
+import {ui}                           from '../utilities/ui';
 import {PackageJson}                  from './packageJson';
 
+const debug = debugInit('sapi:Preferences');
 const randomBytes = promisify(randomBytesCb);
 const rf = promisify(readFile);
 const spdxIds = require('spdx-license-ids');
@@ -75,10 +78,13 @@ export interface IInitCmdOptions {
 }
 
 export class Preferences {
-  constructor(private state: IState) {
+  constructor(private args: IArgs) {
+    debug('Preferences constructed');
   }
 
   async gather(cmd: IInitCmdOptions): Promise<IPreferences> {
+    debug('.gather called');
+
     const defaults = await this.getDefaults();
     const results = {} as IPreferences;
 
@@ -86,9 +92,9 @@ export class Preferences {
     await this.getPreferencesForEnvironment(defaults, results, cmd);
 
     if (cmd.acceptDefaults) {
-      this.state.ui.message('Accepting defaults preferences:');
+      ui.message('Accepting defaults preferences:');
       for (const key of Object.keys(results)) {
-        this.state.ui.success(`${key}: ${results[key]}`);
+        ui.success(`${key}: ${results[key]}`);
       }
     }
 
@@ -98,6 +104,8 @@ export class Preferences {
   }
 
   private async generatePassword(): Promise<string> {
+    debug('.generatePassword called');
+
     return (await randomBytes(128))
       .toString('ascii')
       .match(/[!-_a-~]/gi)
@@ -108,13 +116,15 @@ export class Preferences {
   }
 
   private async getPreferencesForEnvironment(defaults: IDotSapiDefaults, results: IPreferences, cmd: IInitCmdOptions): Promise<void> {
+    debug('.getPreferencesForEnvironment called');
+
     if (!cmd.acceptDefaults) {
-      this.state.ui.message('src/config/environment.ts preferences:');
+      ui.message('src/config/environment.ts preferences:');
     }
 
     results.authAudiences = '';
     const currentAuthRole = await this.getCurrentAuthSetup();
-    results.authRole = await this.state.ui.listExpand(`What JWT role does this server fulfill?: (${currentAuthRole})`, [
+    results.authRole = await ui.listExpand(`What JWT role does this server fulfill?: (${currentAuthRole})`, [
       {key: 'a', value: 'audience'},
       {key: 'i', value: 'issuer'},
       {key: 'n', value: 'none'}
@@ -125,21 +135,21 @@ export class Preferences {
 
       results.authIssuerName = cmd.acceptDefaults
         ? `issuer.${hostname()}`
-        : await this.state.ui.input('Server JWT Issuer Name', {default: `issuer.${hostname()}`});
+        : await ui.input('Server JWT Issuer Name', {default: `issuer.${hostname()}`});
 
       if (results.authRole === 'audience') {
         results.authAudienceName = cmd.acceptDefaults
           ? `audience.${hostname()}`
-          : await this.state.ui.input('Server JWT Audience Name', {default: `audience.${hostname()}`});
+          : await ui.input('Server JWT Audience Name', {default: `audience.${hostname()}`});
       }
 
       results.authJwtIssuerKey = cmd.acceptDefaults
         ? await this.generatePassword()
-        : await this.state.ui.input('Server JWT Signing Key:', {default: await this.getCurrentIssuerKey()});
+        : await ui.input('Server JWT Signing Key:', {default: await this.getCurrentIssuerKey()});
 
       if (results.authRole === 'issuer' && !cmd.acceptDefaults) {
 
-        this.state.ui.message('An issuer needs to know the audiences that will be served <type done to continue>:');
+        ui.message('An issuer needs to know the audiences that will be served <type done to continue>:');
 
         authAudiences = await this.getCurrentAudienceSetup();
 
@@ -147,16 +157,16 @@ export class Preferences {
         while (true) {
           for (let i = 0; i < authAudiences.length; i++) {
             const audience = authAudiences[i];
-            this.state.ui.success(`[${i}] Added audience server: { name: ${audience.name}, key: ${audience.key} }`);
+            ui.success(`[${i}] Added audience server: { name: ${audience.name}, key: ${audience.key} }`);
           }
 
-          const name = await this.state.ui.input('Audience Server Name:', {default: `audience${i++}.${hostname()}`});
+          const name = await ui.input('Audience Server Name:', {default: `audience${i++}.${hostname()}`});
 
-          if (name === 'done' && await this.state.ui.question(`Are you sure you're done defining audiences?`, {default: true})) {
+          if (name === 'done' && await ui.question(`Are you sure you're done defining audiences?`, {default: true})) {
             break;
           }
 
-          const key = await this.state.ui.input('Audience Server Key:', {default: await this.generatePassword()});
+          const key = await ui.input('Audience Server Key:', {default: await this.generatePassword()});
 
           authAudiences.push({
             name,
@@ -173,11 +183,13 @@ export class Preferences {
   }
 
   private async getPreferencesForPackageJson(defaults: IDotSapiDefaults, results: IPreferences, cmd: IInitCmdOptions): Promise<void> {
+    debug('.getPreferencesForPackageJson called');
+
     if (!cmd.acceptDefaults) {
-      this.state.ui.message('package.json preferences:');
+      ui.message('package.json preferences:');
     }
 
-    const packageJson = new PackageJson(this.state).get() as any;
+    const packageJson = new PackageJson(this.args).get() as any;
 
     const author = packageJson.author || defaults.author || userInfo().username || 'nodejs sakuraapi typescript';
     const description = packageJson.description || 'SakuraApi Awesome Sauce';
@@ -188,30 +200,32 @@ export class Preferences {
 
     results.author = cmd.acceptDefaults
       ? author
-      : await this.state.ui.input('Author:', {default: author});
+      : await ui.input('Author:', {default: author});
 
     results.description = cmd.acceptDefaults
       ? description
-      : await this.state.ui.input('Description:', {default: description});
+      : await ui.input('Description:', {default: description});
 
     results.license = cmd.acceptDefaults
       ? packageJson.license || defaults.license || 'UNDEFINED'
-      : await this.state.ui.autoList(`License${currentLicense}:`, this.getLicenses(packageJson, defaults));
+      : await ui.autoList(`License${currentLicense}:`, this.getLicenses(packageJson, defaults));
 
     results.name = cmd.acceptDefaults
       ? name
-      : await this.state.ui.input('Project Name (npm name):', {
+      : await ui.input('Project Name (npm name):', {
         default: name,
         validate: this.npmNameValidator
       });
 
     results.version = cmd.acceptDefaults
       ? version
-      : await this.state.ui.input('Version:', {default: version, validate: this.versionValidator});
+      : await ui.input('Version:', {default: version, validate: this.versionValidator});
 
   }
 
   private async getCurrentAuthSetup(): Promise<string> {
+    debug('.getCurrentAuthSetup called');
+
     try {
       const sakuraApiTs = await rf('src/sakura-api.ts', 'utf8');
       if (sakuraApiTs.includes('addAuthenticationAuthority')) {
@@ -229,6 +243,7 @@ export class Preferences {
   }
 
   private async getCurrentAudienceSetup(): Promise<Array<{ name: string, key: string }>> {
+    debug('.getCurrentAudienceSetup called');
 
     try {
       const env = require(join(process.cwd(), 'dist/config/environment.js'));
@@ -248,6 +263,8 @@ export class Preferences {
   }
 
   private async getCurrentIssuerKey(): Promise<string> {
+    debug('.getCurrentIssuerKey called');
+
     try {
       const env = require(join(process.cwd(), 'dist/config/environment.js'));
       return (((env || {} as any).authentication || {} as any).jwt || {} as any).key || this.generatePassword();
@@ -257,8 +274,10 @@ export class Preferences {
   }
 
   private async getDefaults(): Promise<IDotSapiDefaults> {
+    debug('.getDefaults called');
+
     try {
-      this.state.ui.success(`Loaded default preferences from ${homedir()}/.sapi`);
+      ui.success(`Loaded default preferences from ${homedir()}/.sapi`);
       return JSON.parse(await rf(join(homedir(), '.sapi'), 'utf8')) as IDotSapiDefaults;
     } catch (err) {
       if (err.code === 'ENOENT') {
@@ -268,6 +287,7 @@ export class Preferences {
   }
 
   private getLicenses(pacakgeJson, defaults): any[] {
+    debug('.getLicenses called');
 
     const spdx = [...spdxIds];
     const prepend = [];
@@ -296,19 +316,22 @@ export class Preferences {
   }
 
   private npmNameValidator(input: string, answers: any) {
+    debug('.npmNameValidator called');
+
     const validation = validateNpmName(input);
 
     return validation.validForNewPackages || `Invalid NPM Package Name: ${validation.warnings.join(', '.yellow.bold)}`;
   }
 
   private async saveDefaults(results: IPreferences, cmd: IInitCmdOptions) {
+    debug('.saveDefaults called');
 
     if (!cmd.save) {
       return;
     }
 
     const path = join(homedir(), '.sapi');
-    this.state.ui.message(`Saving defaults to ${path}`);
+    ui.message(`Saving defaults to ${path}`);
 
     const defaults = {
       author: results.author,
@@ -318,14 +341,16 @@ export class Preferences {
 
     try {
       await wf(path, JSON.stringify(defaults, null, 2), 'utf8');
-      this.state.ui.success(`Defaults saved to ${path}`);
+      ui.success(`Defaults saved to ${path}`);
     } catch (err) {
-      this.state.ui.error(`Unable to safe defaults: ${err}`);
+      ui.error(`Unable to safe defaults: ${err}`);
     }
 
   }
 
   private versionValidator(input: string, answers: any) {
+    debug('.versionValidator called');
+
     return semVer.valid(input) ? true : 'Invalid version number. Make sure your version complies with Semantic Versioning.';
   }
 }

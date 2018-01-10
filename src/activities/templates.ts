@@ -1,28 +1,41 @@
-import * as ejs from 'ejs';
-import {readFile} from 'fs';
-import {join} from 'path';
-import {promisify} from 'util';
-import {IState} from '../i-state';
-import {IInitCmdOptions, IPreferences} from './preferences';
+import * as debugInit from 'debug';
+import * as ejs       from 'ejs';
+import {readFile}     from 'fs';
+import {join}         from 'path';
+import {promisify}    from 'util';
+import {IArgs}        from '../i-args';
+import {file}         from '../utilities/file';
+import {ui}           from '../utilities/ui';
+import {
+  IInitCmdOptions,
+  IPreferences
+}                     from './preferences';
 
+const debug = debugInit('sapi:Templates');
 const rf = promisify(readFile);
 
 export class Templates {
 
-  constructor(private state: IState) {
+  constructor(private args: IArgs) {
+    debug('Templates constructed');
   }
 
   async createFiles(prefs: IPreferences, cmd: IInitCmdOptions) {
-    this.state.ui.message('Creating files (not persisted until everything is completed)...');
+    debug('.createFiles called');
+
+    ui.message('Creating files (not persisted until everything is completed)...');
 
     const templateBasePath = join(__dirname, '..', 'template/');
-    const templateFiles = this.state.file.getTemplateFiles();
+    const templateFiles = file.getTemplateFiles();
+
+    debug('templateBasePath: %s', templateBasePath);
+    debug('templateFiles: %o', templateFiles);
 
     for (const templateFilePath of templateFiles) {
       uiLoop:while (true) {
         const realFilePath = templateFilePath.replace(templateBasePath, '');
 
-        const content = this.state.file.getText(realFilePath);
+        const content = file.getText(realFilePath);
         const template = await rf(templateFilePath, 'utf8');
 
         let rendered;
@@ -35,23 +48,23 @@ export class Templates {
         if (content) {
           // the file exists already
           if (content === rendered) {
-            this.state.ui.success(`${realFilePath} exists`);
+            ui.success(`${realFilePath} exists`);
 
           } else {
-            this.state.ui.warn(`${realFilePath} conflict`);
-            const fileResolution = await this.state.ui.listExpand('Resolve conflict (h for help):', this.getConflictResolutionChoices());
+            ui.warn(`${realFilePath} conflict`);
+            const fileResolution = await ui.listExpand('Resolve conflict (h for help):', this.getConflictResolutionChoices());
             switch (fileResolution) {
               case 'keep':
-                this.state.ui.success(`keeping ${realFilePath}`);
+                ui.success(`keeping ${realFilePath}`);
                 break uiLoop;
               case 'replace':
                 this.saveFile(realFilePath, rendered, 'replaced');
                 break uiLoop;
               case 'diff':
                 const realFile = await rf(realFilePath, 'utf8');
-                this.state.ui.lineOMagic();
-                this.state.file.compareLinesPrint(rendered, realFile);
-                this.state.ui.lineOMagic();
+                ui.lineOMagic();
+                file.compareLinesPrint(rendered, realFile);
+                ui.lineOMagic();
                 continue;
             }
           }
@@ -66,6 +79,8 @@ export class Templates {
   }
 
   private removeEjsEmptyCommentLines(source: string): string {
+    debug('.removeEjsEmptyCommentLines called');
+
     const parts = source.split('\n');
     let results = [];
     for (let part of parts) {
@@ -83,6 +98,8 @@ export class Templates {
   }
 
   private getConflictResolutionChoices(): any[] {
+    debug('.getConflictResolutionChoices called');
+
     return [
       {
         key: 'k',
@@ -103,11 +120,13 @@ export class Templates {
   }
 
   private saveFile(filePath, content, msg): void {
+    debug('.saveFile called');
+
     if (content && content.trim().length === 0) {
-      this.state.ui.warn(`${filePath} skipped, no content`);
+      ui.warn(`${filePath} skipped, no content`);
     } else if (content.length > 0) {
-      this.state.ui.success(`${filePath} ${msg}`);
-      this.state.file.write(filePath, content);
+      ui.success(`${filePath} ${msg}`);
+      file.write(filePath, content);
     }
   }
 }

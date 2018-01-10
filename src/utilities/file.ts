@@ -1,14 +1,26 @@
-import {diffChars, diffJson, diffLines} from 'diff';
-import {readdir, readFile} from 'fs';
-import * as glob from 'glob';
-import * as memFs from 'mem-fs';
-import * as editor from 'mem-fs-editor';
-import {join} from 'path';
-import {cd, mkdir} from 'shelljs';
-import {promisify} from 'util';
-import {IArgs} from './i-args';
-import {UI} from './ui';
+import * as debugInit from 'debug';
+import {
+  diffChars,
+  diffJson,
+  diffLines
+}                     from 'diff';
+import {
+  readdir,
+  readFile
+}                     from 'fs';
+import * as glob      from 'glob';
+import * as memFs     from 'mem-fs';
+import * as editor    from 'mem-fs-editor';
+import {join}         from 'path';
+import {
+  cd,
+  mkdir
+}                     from 'shelljs';
+import {promisify}    from 'util';
+import {IArgs}        from '../i-args';
+import {UI}           from './ui';
 
+const debug = debugInit('sapi:File');
 const rd = promisify(readdir);
 const rf = promisify(readFile);
 
@@ -39,6 +51,8 @@ export class File {
     this.memEditor = editor.create(this.memfs);
 
     this.memfs.get('package.json');
+
+    debug('File constructed');
   }
 
   /**
@@ -46,6 +60,8 @@ export class File {
    * @returns {Promise<void>}
    */
   async commit(): Promise<void> {
+    debug('.commit called');
+
     return new Promise<void>((resolve, reject) => {
       this.memEditor.commit((err) => {
         (err)
@@ -56,6 +72,8 @@ export class File {
   }
 
   compareCharacters(mem: any, disk: any): string {
+    debug('.compareCharacters called');
+
     const diff = diffChars(disk, mem);
 
     let lc = 1;
@@ -76,6 +94,8 @@ export class File {
   }
 
   compareCharactersPrint(mem: any, disk: any): void {
+    debug('.compareCharactersPrint called');
+
     console.log(this.compareCharacters(mem, disk));
   }
 
@@ -86,6 +106,8 @@ export class File {
    * @returns {string}
    */
   compareJson(mem: { any }, disk: { any }): string {
+    debug('.compareJson called');
+
     const diff = diffJson(disk, mem);
 
     let result = '';
@@ -106,10 +128,13 @@ export class File {
    * @param {string} disk the disk version of the file
    */
   compareJsonPrint(mem: { any }, disk: { any }): void {
+    debug('.compareJsonPrint called');
     console.log(this.compareJson(mem, disk));
   }
 
   compareLines(mem: any, disk: any): string {
+    debug('.compareLines called');
+
     const diff = diffLines(disk, mem);
 
     let lc = 1;
@@ -131,15 +156,22 @@ export class File {
   }
 
   compareLinesPrint(mem: any, disk: any): void {
+    debug('.compareLinesPrint called');
+
     console.log(this.compareLines(mem, disk));
   }
 
   exists(path: string) {
+    debug('.exists called');
+
     return this.memEditor.exists(path);
   }
 
   getTemplateFiles(): string[] {
-    const templatePath = join(__dirname, 'template');
+    const templatePath = join(__dirname, '..', 'template');
+
+    debug('.getTemplateFiles called for path: %s', templatePath);
+
     return glob.sync(`${templatePath}/**/*`, {dot: true, nodir: true});
   }
 
@@ -150,6 +182,8 @@ export class File {
    * @returns {any}
    */
   getText(file: string) {
+    debug('.getText called');
+
     try {
       return this.memEditor.read(file, {});
     } catch (err) {
@@ -164,6 +198,8 @@ export class File {
    * @returns {Object}
    */
   getJson(file: string) {
+    debug('.getJson called');
+
     try {
       return this.memEditor.readJSON(file, null);
     } catch (err) {
@@ -173,6 +209,8 @@ export class File {
   }
 
   newCwd(path: string) {
+    debug('.newCwd called');
+
     if (!path) {
       return;
     }
@@ -182,10 +220,14 @@ export class File {
   }
 
   write(path: string, content: string | Buffer) {
+    debug('.write called');
+
     this.memEditor.write(path, content);
   }
 
   writeJson(file: string, json: any, replacer?: any, space?: number) {
+    debug('.writeJson called');
+
     this.memEditor.writeJSON(file, json, replacer, space);
   }
 
@@ -194,6 +236,8 @@ export class File {
    * @returns {Promise<string[]>}
    */
   async verifyEmpty(): Promise<string[]> {
+    debug('.verifyEmpty called');
+
     const files = await rd(process.cwd()) || [];
     if (files.length > 0 && !this.args.skipDirectoryCheck) {
       this.ui.warn(`sapi will not write changes to any files until it is complete. If you already have SakuraAPI`);
@@ -202,4 +246,11 @@ export class File {
     }
     return files;
   }
+}
+
+export let file: File;
+
+export function initFile(args: IArgs) {
+  debug('.initFile called');
+  file = new File(args);
 }

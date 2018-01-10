@@ -1,10 +1,17 @@
-import * as Table from 'cli-table';
-import {readFile} from 'fs';
-import {join} from 'path';
-import {promisify} from 'util';
-import {IInitCmdOptions, IPreferences} from '../activities/preferences';
-import {IState} from '../i-state';
+import * as Table     from 'cli-table';
+import * as debugInit from 'debug';
+import {readFile}     from 'fs';
+import {join}         from 'path';
+import {promisify}    from 'util';
+import {
+  IInitCmdOptions,
+  IPreferences
+}                     from '../activities/preferences';
+import {IArgs}        from '../i-args';
+import {file}         from '../utilities/file';
+import {ui}           from '../utilities/ui';
 
+const debug = debugInit('sapi:PackageJson');
 const rf = promisify(readFile);
 
 export class PackageJson {
@@ -12,23 +19,30 @@ export class PackageJson {
   private resolution: string = null;
   private json: any;
 
-  constructor(private state: IState) {
+  constructor(private args: IArgs) {
+    debug('PackageJson constructed');
   }
 
   get(): any {
-    return this.state.file.getJson('package.json') || {};
+    debug('.get called');
+    return file.getJson('package.json') || {};
   }
 
   async update(prefs: IPreferences, cmd: IInitCmdOptions): Promise<void> {
+    debug('.update called');
+
     if (cmd.skipPackageJson) {
+      debug('skipping PackageJson.update because --skipPackageJson flag found');
       return;
     }
 
     while (true) {
+      debug('while loop');
+
       this.json = this.get();
       this.sortJsonParts(this.json);
 
-      this.state.ui.message('Updating package.json file user preferences');
+      ui.message('Updating package.json file user preferences');
 
       // user input
       await this.safeUpdate('name', prefs.name);
@@ -43,12 +57,12 @@ export class PackageJson {
       const depdendencies = JSON.parse(await rf(join(...baseTemplatePath, 'dependencies.json'), 'utf8'));
       const scripts = JSON.parse(await rf(join(...baseTemplatePath, 'scripts.json'), 'utf8'));
 
-      this.state.ui.message('Updating package.json devDependencies');
+      ui.message('Updating package.json devDependencies');
       await this.updateDependencies('devDependencies', devDependencies);
       await this.updateDependencies('dependencies', depdendencies);
       await this.updateDependencies('scripts', scripts);
 
-      this.state.ui.message('Done updating package.json');
+      ui.message('Done updating package.json');
 
       let disk;
       try {
@@ -70,34 +84,36 @@ export class PackageJson {
       }
 
       if (!disk) {
-        this.state.ui.message('The following package.json file will be created:');
-        this.state.ui.lineOMagic();
+        ui.message('The following package.json file will be created:');
+        ui.lineOMagic();
         console.log(JSON.stringify(this.json, null, 2));
-        this.state.ui.lineOMagic();
+        ui.lineOMagic();
       } else {
-        this.state.ui.message('The following changes were made (the order of fields will not be preserved when persisting to disk):');
-        this.state.ui.lineOMagic();
-        this.state.file.compareJsonPrint(this.json, disk);
-        this.state.ui.lineOMagic();
+        ui.message('The following changes were made (the order of fields will not be preserved when persisting to disk):');
+        ui.lineOMagic();
+        file.compareJsonPrint(this.json, disk);
+        ui.lineOMagic();
       }
 
-      if (await this.state.ui.question('Accept these changes?', {default: true})) {
-        this.state.ui.message('Changes accepted (they will not be written to disk until all changes are completed)');
+      if (await ui.question('Accept these changes?', {default: true})) {
+        ui.message('Changes accepted (they will not be written to disk until all changes are completed)');
         break;
       } else {
         this.resolution = null;
         this.json = null;
-        this.state.ui.message(`Restarting update to 'package.json'`);
+        ui.message(`Restarting update to 'package.json'`);
       }
     }
 
     this.pruneJson(prefs);
 
     // write it to memFS
-    this.state.file.writeJson('package.json', this.json);
+    file.writeJson('package.json', this.json);
   }
 
   private pruneJson(prefs: IPreferences) {
+    debug('.pruneJson called');
+
     if (prefs.authRole !== 'issuer') {
       delete this.json.dependencies['email-templates'];
       delete this.json.dependencies['nodemailer'];
@@ -107,6 +123,8 @@ export class PackageJson {
   }
 
   private sort(target: any, field: string): any {
+    debug('.sort called');
+
     if (!target[field]) {
       return target[field];
     }
@@ -120,6 +138,8 @@ export class PackageJson {
   }
 
   private sortJsonParts(target: any) {
+    debug('.sortJsonParts called');
+
     if (!target) return;
     // sort the relevant sections
     target.dependencies = this.sort(target, 'dependencies');
@@ -151,6 +171,8 @@ export class PackageJson {
   }
 
   private getConflictChoices(): any[] {
+    debug('.getConflictChoices called');
+
     return [
       {
         key: 'k',
@@ -171,6 +193,8 @@ export class PackageJson {
   }
 
   private getConflictResolutionChoices(): any[] {
+    debug('.getConflictResolutionChoices called');
+
     return [
       {
         key: 'k',
@@ -196,6 +220,8 @@ export class PackageJson {
   }
 
   private deepGet(json: any, field: string) {
+    debug('.deepGet called');
+
     const parts = field.split('.');
     let val = json;
     for (let part of parts) {
@@ -209,6 +235,8 @@ export class PackageJson {
   }
 
   private deepSet(json: any, field: string, value) {
+    debug('.deepSet called');
+
     const parts = field.split('.');
     let val = json;
 
@@ -224,22 +252,23 @@ export class PackageJson {
           ? val[part]
           : val[part] = {};
       } catch (err) {
-        this.state.ui.warn(err);
-        this.state.ui.error(`package.json is in an unexpected state - trying to deepSet for field ${field}`, 1);
+        ui.warn(err);
+        ui.error(`package.json is in an unexpected state - trying to deepSet for field ${field}`, 1);
       }
     }
   }
 
   private async safeUpdate(field: string, newValue: string | boolean | number) {
+    debug('.safeUpdate called');
 
     const val = this.deepGet(this.json, field);
 
     // get resolution preference
     if (val && val !== newValue && !this.resolution) {
       while (true) {
-        this.resolution = await this.state.ui.listExpand('Package.json conflict (h for help):', this.getConflictChoices());
+        this.resolution = await ui.listExpand('Package.json conflict (h for help):', this.getConflictChoices());
         if (this.resolution === 'replace') {
-          if (await this.state.ui.question('Are you sure you want to accept all changes to package.json?'.red.bold.underline, {default: false})) {
+          if (await ui.question('Are you sure you want to accept all changes to package.json?'.red.bold.underline, {default: false})) {
             break;
           }
         } else if (this.resolution === 'diff') {
@@ -256,27 +285,27 @@ export class PackageJson {
       switch (this.resolution) {
         case 'replace':
           this.deepSet(this.json, field, newValue);
-          this.state.ui.success(`Updated ${field} with '${newValue}'`);
+          ui.success(`Updated ${field} with '${newValue}'`);
           break;
         case 'pick':
           const table = new Table({
             head: ['field', 'original value', 'new value']
           });
 
-          this.state.ui.warn(`package.json conflict:`);
+          ui.warn(`package.json conflict:`);
 
           table.push([field, val, newValue]);
           console.log(table.toString());
 
           uiloop:while (true) {
-            const fileResolution = await this.state.ui.listExpand('Resolve package.json conflict (h for help):', this.getConflictResolutionChoices());
+            const fileResolution = await ui.listExpand('Resolve package.json conflict (h for help):', this.getConflictResolutionChoices());
             switch (fileResolution) {
               case 'keep':
                 break uiloop;
 
               case 'replace':
                 this.deepSet(this.json, field, newValue);
-                this.state.ui.success(`Updated ${field} with '${newValue}'`);
+                ui.success(`Updated ${field} with '${newValue}'`);
                 break uiloop;
 
               case 'replaceAll':
@@ -291,7 +320,7 @@ export class PackageJson {
                 this.sortJsonParts(copy);
 
                 this.deepSet(copy, field, newValue);
-                this.state.file.compareJsonPrint(copy, disk);
+                file.compareJsonPrint(copy, disk);
                 break;
             }
           }
@@ -304,6 +333,8 @@ export class PackageJson {
   }
 
   private async updateDependencies(field: string, dependencies: any): Promise<void> {
+    debug('.updateDependencies called');
+
     for (const key of Object.keys(dependencies)) {
       const newValue = dependencies[key];
       await this.safeUpdate(`${field}.${key}`, newValue);
@@ -311,6 +342,8 @@ export class PackageJson {
   }
 
   private getCopy(json: any) {
+    debug('.getCopy called');
+
     return JSON.parse(JSON.stringify(json));
   }
 }
