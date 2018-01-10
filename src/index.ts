@@ -1,24 +1,45 @@
 #!/usr/bin/env node
 
 import 'colors';
-import {version} from 'commander';
-import {readFile} from 'fs';
-import {join} from 'path';
-import {promisify} from 'util';
-import {PackageJson} from './activities/packageJson';
-import {IInitCmdOptions, Preferences} from './activities/preferences';
-import {Templates} from './activities/templates';
-import {File} from './file';
-import {Git} from './git';
-import {IState} from './i-state';
-import {Npm} from './npm';
-import {UI} from './ui';
+import {version}      from 'commander';
+import * as debugInit from 'debug';
+import {readFile}     from 'fs';
+import {join}         from 'path';
+import {promisify}    from 'util';
+import {
+  IOutdatedCmdOptions,
+  UpdateOutdated
+}                     from './activities/outdated';
+import {PackageJson}  from './activities/packageJson';
+import {
+  IInitCmdOptions,
+  Preferences
+}                     from './activities/preferences';
+import {Templates}    from './activities/templates';
+import {IArgs}        from './i-args';
+import {
+  file,
+  initFile
+}                     from './utilities/file';
+import {
+  git,
+  initGit
+}                     from './utilities/git';
+import {
+  initNpm,
+  npm
+}                     from './utilities/npm';
+import {
+  initUI,
+  ui
+}                     from './utilities/ui';
 
+const debug = debugInit('sapi:Main');
 const rf = promisify(readFile);
 
 class Main {
+  args: IArgs;
   exiting = false;
-  state: IState;
   version: string;
 
   constructor() {
@@ -39,6 +60,8 @@ class Main {
   }
 
   async run() {
+    debug('.run called');
+
     this.version = await rf(join(__dirname, 'version'), 'utf8');
 
     const args = version(this.version)
@@ -65,32 +88,38 @@ class Main {
       .option('--acceptDefaults', 'Accepts all default preferences');
 
     args
+      .command('outdated')
+      .description('Iterates through `npm outdated` dependencies and lets you update / test them one by one')
+      .action(this.outdatedUpdate.bind(this))
+      .option('--skipLatest', 'Do not prompt for packages that match wanted version')
+      .option('--skipTests', 'Do not run tests for each update');
+
+    args
       .on('--help', this.help);
 
-    this.state = {
-      args: args as any,
-      file: new File(args as any),
-      git: new Git(args as any),
-      ui: new UI(args as any)
-    };
+    initUI(args as any);
+    initFile(args as any);
+    initGit(args as any);
+    initNpm(args as any);
+    this.args = args as any;
 
-    this.state.ui.message(`SakuraAPI Cli v${this.version}`);
-
+    ui.message(`SakuraAPI Cli v${this.version}`);
     await args.parse(process.argv);
 
-    if (!process.argv.slice(2).length || (this.state.args as any).args.length === 0) this.state.args.help();
+    if (!process.argv.slice(2).length || (args as any).args.length === 0) args.help();
   }
 
   async init(path: string, cmd: IInitCmdOptions) {
-    const npm = new Npm(this.state);
-    const packageJson = new PackageJson(this.state);
-    const preferences = new Preferences(this.state);
-    const templates = new Templates(this.state);
+    debug('.init called');
 
-    this.state.file.newCwd(path);
+    const packageJson = new PackageJson(this.args);
+    const preferences = new Preferences(this.args);
+    const templates = new Templates(this.args);
 
-    const cwdFiles = await this.state.file.verifyEmpty();
-    await this.state.git.init(cwdFiles);
+    file.newCwd(path);
+
+    const cwdFiles = await file.verifyEmpty();
+    await git.init(cwdFiles);
 
     const config = await preferences.gather(cmd);
 
@@ -101,44 +130,56 @@ class Main {
     await npm.init(cmd);
 
     if (!npm.dockerCheck()) {
-      this.state.ui.boxedMessage('Unable to find docker in your path. This project depends on docker.');
+      ui.boxedMessage('Unable to find docker in your path. This project depends on docker.');
     }
 
-    this.state.ui.success(`SakuraAPI project setup. You should be able to 'npm start' then browse to http://localhost:8001/api`);
+    ui.success(`SakuraAPI project setup. You should be able to 'npm start' then browse to http://localhost:8001/api`);
+  }
+
+  async outdatedUpdate(cmd: IOutdatedCmdOptions) {
+    debug('.outdatedUpdate called');
+
+    const outdated = new UpdateOutdated(this.args);
+    await outdated.update(cmd);
   }
 
   async packageUpdate(cmd: IInitCmdOptions) {
-    const npm = new Npm(this.state);
-    const preferences = new Preferences(this.state);
+    debug('.packageUpdate called');
+
+    const preferences = new Preferences(this.args);
 
     const config = await preferences.gather(cmd);
-    await new PackageJson(this.state).update(config, cmd);
+    await new PackageJson(this.args).update(config, cmd);
 
     await this.saveToDisk();
     await npm.init(cmd);
   }
 
   private cleanup() {
+    debug('.cleanup called');
+
     if (this.exiting) return;
     this.exiting = true;
   }
 
   private help() {
-
+    debug('.help called');
   }
 
   private async saveToDisk() {
-    if (this.state.args.dryRun) {
-      this.state.ui.warn('Dry run... changes will not be saved');
+    debug('.saveToDisk called');
+
+    if (this.args.dryRun) {
+      ui.warn('Dry run... changes will not be saved');
       return;
     }
 
-    const spinner = this.state.ui.spinner('Committing changes to disk');
+    const spinner = ui.spinner('Committing changes to disk');
     try {
-      await this.state.file.commit();
-      this.state.ui.success('Changes saved to disk...');
+      await file.commit();
+      ui.success('Changes saved to disk...');
     } catch (err) {
-      this.state.ui.error(err, 1);
+      ui.error(err, 1);
     } finally {
       spinner.stop();
     }

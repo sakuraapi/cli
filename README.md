@@ -1,6 +1,6 @@
 # Installing
 
-SakuraAPI CLI helps your scaffold new projects.
+SakuraAPI CLI helps you scaffold new projects.
 
 `npm install -g @sakuraapi/cli`
 
@@ -16,6 +16,11 @@ You can also run `sapi init` over an existing project and it will give you the o
 
 `sapi init` supports setting up the server without authentication, as a JWT issuer and as a JWT audience server.
 
+# Updating outdated dependencies
+Managing the never ending process of updating your `package.json` dependencies can be tedious. `sapi outdated` will take you through your list of outdated dependencies, giving you the option for each dependency to either skip it, update it to the wanted version, or updated it to the latest version. After each update, `sapi` runs your unit-tests to make sure that particular update did not break your build. It also properly saves the new version in either `dependencies` or `devDependencies` in your `package.json` file. It's still a tedious process... but hopefully a little less so.
+
+To get help with other options for outdated, use `sapi outdated --help`. 
+
 # Some Caution
 
 `sapi` cli is pretty early in its development. Make sure you have a backup of your files before you use it to update an existing project.
@@ -23,6 +28,8 @@ You can also run `sapi init` over an existing project and it will give you the o
 # Bugs and requests:
 
 Please report bugs and reports here: https://github.com/sakuraapi/cli/issues
+
+You can get debug output. For example: `DEBUG=sapi:* sapi --help`. Replace `--help` with whatever `sapi` command you want. This might help you report more accurate bugs... it might not.
 
 # Contribution
 [![CLA assistant](https://cla-assistant.io/readme/badge/sakuraapi/cli)](https://cla-assistant.io/sakuraapi/cli)

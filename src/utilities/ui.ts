@@ -1,8 +1,14 @@
-import * as clui from 'clui';
-import {prompt, registerPrompt} from 'inquirer';
+import * as Table        from 'cli-table';
+import * as clui         from 'clui';
+import * as debugInit    from 'debug';
+import {
+  prompt,
+  registerPrompt
+}                        from 'inquirer';
 import * as autoComplete from 'inquirer-autocomplete-prompt';
-import {IArgs} from './i-args';
+import {IArgs}           from '../i-args';
 
+const debug = debugInit('sapi:UI');
 export type InquirerAnswerFunction = (answers: any) => void;
 export type InquirerChoicesFunction = (answers: any) => any[];
 
@@ -21,6 +27,7 @@ export class UI {
 
   constructor(private args: IArgs) {
     registerPrompt('autocomplete', autoComplete);
+    debug('UI constructed');
   }
 
   /**
@@ -211,6 +218,15 @@ export class UI {
     return spinner;
   }
 
+  table(header: string[], rows: Array<string[]>) {
+    const table = new Table({
+      head: header
+    });
+
+    table.push(...rows);
+    console.log(table.toString());
+  }
+
   /**
    * Displays a warning message
    * @param {any[] | string} msg
@@ -251,4 +267,10 @@ export class UI {
     console.log((msg as Array<any>).shift(), ...msg);
   }
 
+}
+
+export let ui: UI;
+
+export function initUI(args: IArgs) {
+  ui = new UI(args);
 }
