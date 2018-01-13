@@ -1,0 +1,12 @@
+import {testSapi} from '../../spec/helpers/sakura-api';
+import {<%=className%>} from './<%=rawFileName%>';
+
+describe('<%=className%> tests', () => {
+  const sapi = testSapi({
+    routables: [<%=className%>]
+  });
+
+  it('<%=className%>', () => {
+    pending('not implemented');
+  });
+});

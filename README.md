@@ -4,7 +4,7 @@ SakuraAPI CLI helps you scaffold new projects.
 
 `npm install -g @sakuraapi/cli`
 
-`sapi help`
+`sapi --help`
 
 # Scaffolding a SakuraAPI project
 
@@ -15,6 +15,39 @@ You can also run `sapi init` within a directory and it will initialize the proje
 You can also run `sapi init` over an existing project and it will give you the option to diff changes file by file.
 
 `sapi init` supports setting up the server without authentication, as a JWT issuer and as a JWT audience server.
+
+# Generating Models, Routables and Services
+`@Model`, `@Routable` and `@Injectable` files can be scaffolded individually to save you the hassle of setting them up.
+
+The example below assume you are in the root of your project's directory.
+
+Currently, generated output still needs to be manually injected when you instantiate `SakuraApi`. Don't forget or it won't work.
+
+## Models
+`sapi g model src/models/SomeModel`
+
+This will create:
+
+* `src/models/some-model.ts`
+* `src/models/some-model.spec.ts`
+
+## Routables
+`sapi g routable src/api/SomeApi`
+
+This will create:
+
+* `src/api/some-api.ts`
+* `src/api/some-api.spec.ts`
+
+## Services (Injectables)
+
+`sapi g service src/services/SomeService`
+
+This will create:
+
+* `src/services/some-service.ts`
+* `src/services/some-service.spec.ts`
+
 
 # Updating outdated dependencies
 Managing the never ending process of updating your `package.json` dependencies can be tedious. `sapi outdated` will take you through your list of outdated dependencies, giving you the option for each dependency to either skip it, update it to the wanted version, or updated it to the latest version. After each update, `sapi` runs your unit-tests to make sure that particular update did not break your build. It also properly saves the new version in either `dependencies` or `devDependencies` in your `package.json` file. It's still a tedious process... but hopefully a little less so.

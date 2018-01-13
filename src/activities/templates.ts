@@ -78,7 +78,7 @@ export class Templates {
     }
   }
 
-  private removeEjsEmptyCommentLines(source: string): string {
+  removeEjsEmptyCommentLines(source: string): string {
     debug('.removeEjsEmptyCommentLines called');
 
     const parts = source.split('\n');
@@ -95,6 +95,17 @@ export class Templates {
 
     }
     return results.join('\n').trim() + '\n';
+  }
+
+  saveFile(filePath, content, msg): void {
+    debug('.saveFile called');
+
+    if (content && content.trim().length === 0) {
+      ui.warn(`${filePath} skipped, no content`);
+    } else if (content.length > 0) {
+      ui.success(`${filePath} ${msg}`);
+      file.write(filePath, content);
+    }
   }
 
   private getConflictResolutionChoices(): any[] {
@@ -117,16 +128,5 @@ export class Templates {
         value: 'diff'
       }
     ];
-  }
-
-  private saveFile(filePath, content, msg): void {
-    debug('.saveFile called');
-
-    if (content && content.trim().length === 0) {
-      ui.warn(`${filePath} skipped, no content`);
-    } else if (content.length > 0) {
-      ui.success(`${filePath} ${msg}`);
-      file.write(filePath, content);
-    }
   }
 }

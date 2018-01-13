@@ -182,11 +182,14 @@ export class File {
    * @returns {any}
    */
   getText(file: string) {
-    debug('.getText called');
+    debug('.getText called for file: %s', file);
 
     try {
-      return this.memEditor.read(file, {});
+      const result = this.memEditor.read(file, {});
+      debug('.getText result:\n%s', result);
+      return result;
     } catch (err) {
+      debug('.getText error: %O', err);
       return null;
     }
   }
