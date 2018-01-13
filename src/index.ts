@@ -6,6 +6,7 @@ import * as debugInit from 'debug';
 import {readFile}     from 'fs';
 import {join}         from 'path';
 import {promisify}    from 'util';
+import {Generate}     from './activities/generate';
 import {
   IOutdatedCmdOptions,
   UpdateOutdated
@@ -67,35 +68,41 @@ class Main {
     const args = version(this.version)
       .description('Command Line Interface for setting up and maintaining SakuraAPI projects')
       .option('-d, --dryRun', 'Does everything, but skips the actual merge to master')
-      .option('-s, --silent', 'Do not prompt, accept confirmations and default values (or overrides if given as arguments)')
-      .option('--skipDirectoryCheck', 'Skips the check to make sure the directory is empty');
+      .option('-s, --silent', 'Do not prompt, accept confirmations and default values (or overrides if given as arguments)');
+
+    args
+      .command('generate [schematic] [path]')
+      .alias('g')
+      .description('Generate a model, injectable, or api')
+      .action(this.generate.bind(this));
 
     args
       .command('init [path]')
+      .alias('i')
       .description('Initialize a new SakuraAPI project in the current directory')
       .action(this.init.bind(this))
       .option('--save', 'Saves your preferences as ~/.sapi')
       .option('--skipNpmInit', 'Skips `npm init`')
       .option('--skipPackageJson', 'Skips initializing package.json')
-      .option('--acceptDefaults', 'Accepts all default preferences');
-
-    args
-      .command('update-package')
-      .description('Update or initialize just the package.json file')
-      .action(this.packageUpdate.bind(this))
-      .option('--save', 'Saves your preferences as ~/.sapi')
-      .option('--skipNpmInit', 'Skips `npm init`')
-      .option('--acceptDefaults', 'Accepts all default preferences');
+      .option('--acceptDefaults', 'Accepts all default preferences')
+      .option('--skipDirectoryCheck', 'Skips the check to make sure the directory is empty');
 
     args
       .command('outdated')
+      .alias('o')
       .description('Iterates through `npm outdated` dependencies and lets you update / test them one by one')
       .action(this.outdatedUpdate.bind(this))
       .option('--skipLatest', 'Do not prompt for packages that match wanted version')
       .option('--skipTests', 'Do not run tests for each update');
 
     args
-      .on('--help', this.help);
+      .command('update-package')
+      .alias('u')
+      .description('Update or initialize just the package.json file')
+      .action(this.packageUpdate.bind(this))
+      .option('--save', 'Saves your preferences as ~/.sapi')
+      .option('--skipNpmInit', 'Skips `npm init`')
+      .option('--acceptDefaults', 'Accepts all default preferences');
 
     initUI(args as any);
     initFile(args as any);
@@ -107,6 +114,22 @@ class Main {
     await args.parse(process.argv);
 
     if (!process.argv.slice(2).length || (args as any).args.length === 0) args.help();
+  }
+
+  async generate(schematic, path) {
+    const validSchematics = ['model', 'service', 'routable'];
+
+    schematic = (schematic) ? schematic.toLowerCase() : '';
+    if (validSchematics.indexOf(schematic) === -1) {
+      ui.error(`Invalid schematic. Valid options: [${validSchematics.join(', ')}]`);
+    }
+
+    if (!path || path === '') {
+      ui.error(`You need to provide a ${schematic} name.`);
+    }
+
+    await new Generate(this.args).generate(schematic, path);
+    await this.saveToDisk();
   }
 
   async init(path: string, cmd: IInitCmdOptions) {
@@ -162,10 +185,6 @@ class Main {
     this.exiting = true;
   }
 
-  private help() {
-    debug('.help called');
-  }
-
   private async saveToDisk() {
     debug('.saveToDisk called');
 
@@ -178,10 +197,10 @@ class Main {
     try {
       await file.commit();
       ui.success('Changes saved to disk...');
-    } catch (err) {
-      ui.error(err, 1);
-    } finally {
       spinner.stop();
+    } catch (err) {
+      spinner.stop();
+      ui.error(err, 1);
     }
   }
 
