@@ -5,22 +5,7 @@ import * as util    from 'util';
 import {Bootstrap}  from './sakura-api';
 import {LogService} from './services/log-service';
 
-// Note to implementor: you'll want to think through what the right behavior for your server is
-// when there's an `unhandledRejection` or `uncaughtException`. This placeholder is here so you at least
-// get some kind of useful stack trace until you implement the solution that makes sense for you.
-// Do not go to production with these event handlers as-is.
-
 // tslint:disable:no-console
-process.on('unhandledRejection', (err) => {
-  console.log('Caught unhandledRejection');
-  console.log(err);
-});
-
-process.on('uncaughtException', (err) => {
-  console.log('Caught uncaughtException');
-  console.log(err);
-});
-
 /**
  * Entry point for Donation server.
  *
@@ -37,6 +22,13 @@ class Server {
     try {
       this.sapi = await new Bootstrap().boot();
       this.log = this.sapi.getProvider(LogService);
+
+      // Note to implementor: you'll want to think through what the right behavior for your server is
+      // when there's an `unhandledRejection` or `uncaughtException`. This placeholder is here so you at least
+      // get some kind of useful stack trace until you implement the solution that makes sense for you.
+      // Do not go to production with these event handlers as-is.
+      process.on('unhandledRejection', (err) => this.log.error('Caught unhandledRejection', err));
+      process.on('uncaughtException', (err) => this.log.error('Caught uncaughtException', err));
 
       await this
         .sapi
