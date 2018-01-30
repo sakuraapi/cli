@@ -20,15 +20,24 @@ class Server {
     const writeFile = util.promisify(fs.writeFile);
 
     try {
-      this.sapi = await new Bootstrap().boot();
-      this.log = this.sapi.getProvider(LogService);
-
       // Note to implementor: you'll want to think through what the right behavior for your server is
       // when there's an `unhandledRejection` or `uncaughtException`. This placeholder is here so you at least
       // get some kind of useful stack trace until you implement the solution that makes sense for you.
-      // Do not go to production with these event handlers as-is.
-      process.on('unhandledRejection', (err) => this.log.error('Caught unhandledRejection', err));
-      process.on('uncaughtException', (err) => this.log.error('Caught uncaughtException', err));
+      // Do not go to production with these event handlers as-is unless you understand the implications.
+      process.on('unhandledRejection', (err) => {
+        (this.log)
+          ? this.log.error('unhandledRejection', err)
+          : console.log('unhandledRejection', err);
+      });
+
+      process.on('uncaughtException', (err) => {
+        (this.log)
+          ? this.log.error('uncaughtException', err)
+          : console.log('uncaughtException', err);
+      });
+
+      this.sapi = await new Bootstrap().boot();
+      this.log = this.sapi.getProvider(LogService);
 
       await this
         .sapi
