@@ -1,6 +1,6 @@
 {
   "name": "@sakuraapi/cli",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Command Line Interface for Scaffolding and Managing SakuraAPI Projects",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -58,7 +58,7 @@
     "vinyl": "^2.1.0"
   },
   "devDependencies": {
-    "@sakuraapi/api": "^0.8.0",
+    "@sakuraapi/api": "^0.9.0",
     "@sakuraapi/auth-audience": "^0.3.0",
     "@sakuraapi/auth-native-authority": "^0.3.0-13",
     "@types/change-case": "^2.3.1",

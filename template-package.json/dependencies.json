@@ -1,5 +1,5 @@
 {
-  "@sakuraapi/api": "0.8.0",
+  "@sakuraapi/api": "0.9.0",
   "@sakuraapi/auth-audience": "0.3.0",
   "@sakuraapi/auth-native-authority": "0.3.0-13",
   "bcrypt": "^1.0.2",
