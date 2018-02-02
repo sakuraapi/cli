@@ -2,7 +2,7 @@ import {
   Injectable,
   SakuraApi,
   SapiInjectableMixin
-}                                from '@sakuraapi/api';
+}                                from '@sakuraapi/core';
 import {hostname}                from 'os';
 import * as request              from 'request-promise-native';
 import {

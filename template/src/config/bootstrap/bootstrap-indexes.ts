@@ -1,7 +1,7 @@
 /**
  * Uncomment and place your indexes here if you'd like your server to verify indexes on start
  */
-import {SakuraApi} from '@sakuraapi/api';
+import {SakuraApi} from '@sakuraapi/core';
 
 // import {dbs} from './db';
 

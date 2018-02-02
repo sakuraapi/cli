@@ -1,4 +1,4 @@
-import {SakuraApi}  from '@sakuraapi/api';
+import {SakuraApi}  from '@sakuraapi/core';
 import 'colors';
 import * as fs      from 'fs';
 import * as util    from 'util';

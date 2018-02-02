@@ -4,7 +4,7 @@ import {
   Route,
   SakuraApi,
   SapiRoutableMixin
-}                   from '@sakuraapi/api';
+}                   from '@sakuraapi/core';
 import {
   NextFunction,
   Request,

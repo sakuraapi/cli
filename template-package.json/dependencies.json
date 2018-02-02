@@ -1,7 +1,7 @@
 {
-  "@sakuraapi/api": "0.9.0",
-  "@sakuraapi/auth-audience": "0.3.0",
-  "@sakuraapi/auth-native-authority": "0.3.0-13",
+  "@sakuraapi/api": "0.10.0",
+  "@sakuraapi/auth-audience": "0.3.2",
+  "@sakuraapi/auth-native-authority": "0.3.0-14",
   "bcrypt": "^1.0.2",
   "body-parser": "^1.17.1",
   "colors": "^1.1.2",
