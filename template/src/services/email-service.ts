@@ -3,7 +3,7 @@ import {
   Injectable,
   SakuraApi,
   SapiInjectableMixin
-}                        from '@sakuraapi/api';
+}                        from '@sakuraapi/core';
 import * as debugInit    from 'debug';
 import * as Email        from 'email-templates';
 import {

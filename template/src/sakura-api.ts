@@ -1,4 +1,3 @@
-import {SakuraApi}        from '@sakuraapi/api';
 //-<%if(authRole === 'issuer' || authRole === 'audience') {%>
 import {
   addAuthAudience,
@@ -12,6 +11,7 @@ import {
   IAuthenticationAuthorityOptions
 }                         from '@sakuraapi/auth-native-authority';
 //-<%}%>
+import {SakuraApi}        from '@sakuraapi/core';
 import {json}             from 'body-parser';
 import * as cors          from 'cors';
 import * as debugInit     from 'debug';

@@ -1,7 +1,7 @@
-import {SakuraApi} from '@sakuraapi/api';
-import {json} from 'body-parser';
+import {SakuraApi} from '@sakuraapi/core';
+import {json}      from 'body-parser';
 import * as helmet from 'helmet';
-import {sign} from 'jsonwebtoken';
+import {sign}      from 'jsonwebtoken';
 
 export const baseUri = '/testApi';
 export const noNetwork = !!process.env.NO_NETWORK || false;
