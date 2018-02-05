@@ -7,7 +7,7 @@ import {LogService} from './services/log-service';
 
 // tslint:disable:no-console
 /**
- * Entry point for Donation server.
+ * Entry point for server.
  *
  * See `./sakuraapi.ts` for configuration of SakuraApi.
  */
