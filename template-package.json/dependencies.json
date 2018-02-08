@@ -1,5 +1,5 @@
 {
-  "@sakuraapi/api": "0.10.0",
+  "@sakuraapi/core": "0.10.0",
   "@sakuraapi/auth-audience": "0.3.2",
   "@sakuraapi/auth-native-authority": "0.3.0-14",
   "bcrypt": "^1.0.2",
@@ -14,7 +14,6 @@
   "helmet": "^3.6.0",
   "moment": "^2.18.1",
   "mongodb": "^2.2.26",
-  "node-sass": "^4.5.3",
   "nodemailer": "^4.0.1",
   "request": "^2.81.0",
   "request-promise-native": "^1.0.4",
