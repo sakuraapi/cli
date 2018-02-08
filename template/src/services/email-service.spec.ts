@@ -1,19 +1,21 @@
+//-<%if (authRole === 'issuer') {%>
+
 import {addAuthAudience} from '@sakuraapi/auth-audience';
 import {
   addAuthenticationAuthority,
   IAuthenticationAuthorityOptions
 }                        from '@sakuraapi/auth-native-authority';
-//-<%if (authRole === 'issuer') {%>
+
 import {
   Injectable,
   SakuraApi
-}                        from '@sakuraapi/core';
-import {testSapi}        from '../../spec/helpers/sakura-api';
+}                   from '@sakuraapi/core';
+import {testSapi}   from '../../spec/helpers/sakura-api';
 import {
   EmailService,
   EmailServiceFactory
-}                        from './email-service';
-import {LogService}      from './log-service';
+}                   from './email-service';
+import {LogService} from './log-service';
 
 @Injectable()
 class MockEmailServiceFactory {
