@@ -51,7 +51,7 @@ describe('EmailService', () => {
     ln: 'washington'
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     sapi = testSapi({
       providers: [
         EmailService,
@@ -61,6 +61,10 @@ describe('EmailService', () => {
     });
 
     emailService = sapi.getProvider(EmailService);
+  });
+
+  afterEach(() => {
+    sapi.deregisterDependencies();
   });
 
   it('onChangePasswordEmailRequest', async (done) => {

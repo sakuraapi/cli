@@ -28,51 +28,10 @@ export class ConfigApi extends SapiRoutableMixin() {
   }
 
   @Route({
-    method: 'delete',
+    method: '*',
     path: ''
   })
-  async deleteHandler(req: Request, res: Response, next: NextFunction) {
-    await this.configHandler(req, res);
-    next();
-  }
-
-  @Route({
-    method: 'get',
-    path: ''
-  })
-  async getHandler(req: Request, res: Response, next: NextFunction) {
-    await this.configHandler(req, res);
-    next();
-  }
-
-  @Route({
-    method: 'head',
-    path: ''
-  })
-  async headHandler(req: Request, res: Response, next: NextFunction) {
-    await this.configHandler(req, res);
-    next();
-  }
-
-  @Route({
-    method: 'post',
-    path: ''
-  })
-  async postHandler(req: Request, res: Response, next: NextFunction) {
-    await this.configHandler(req, res);
-    next();
-  }
-
-  @Route({
-    method: 'put',
-    path: ''
-  })
-  async putHandler(req: Request, res: Response, next: NextFunction) {
-    await this.configHandler(req, res);
-    next();
-  }
-
-  async configHandler(req: Request, res: Response): Promise<void> {
+  allHandler(req: Request, res: Response, next: NextFunction) {
     const locals = res.locals as IRoutableLocals;
 
     try {
@@ -87,6 +46,8 @@ export class ConfigApi extends SapiRoutableMixin() {
           error: 'SERVER_ERROR'
         });
       this.log.error(err);
+    } finally {
+      next();
     }
   }
 }
