@@ -42,7 +42,7 @@ export class UI {
 
     msg = options.message || msg as any;
 
-    const answer = await prompt({
+    const answer = await prompt<any>({
       type: 'autocomplete',
       name: 'selection',
       message: msg,
@@ -137,7 +137,7 @@ export class UI {
    * Magical cyan line that extends across the screen.
    */
   lineOfCyan() {
-    process.stdout.write('—'.repeat(process.stdout.columns).cyan.bold);
+    process.stdout.write('—'.repeat(process.stdout.columns).cyan);
     console.log();
   }
 
@@ -186,7 +186,7 @@ export class UI {
     options.default = options.default || false;
     options.message = options.message || msg;
 
-    const answer = await prompt({
+    const answer = await prompt<any>({
       type: 'confirm',
       name: 'confirmation',
       message: options.message as any,
@@ -241,7 +241,7 @@ export class UI {
 
     msg = options.message || msg as any;
 
-    const answer = await prompt({
+    const answer = await prompt<any>({
       type: type,
       name: 'selection',
       message: msg,

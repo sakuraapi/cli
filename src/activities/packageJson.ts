@@ -268,7 +268,7 @@ export class PackageJson {
       while (true) {
         this.resolution = await ui.listExpand('Package.json conflict (h for help):', this.getConflictChoices());
         if (this.resolution === 'replace') {
-          if (await ui.question('Are you sure you want to accept all changes to package.json?'.red.bold.underline, {default: false})) {
+          if (await ui.question('Are you sure you want to accept all changes to package.json?'.red, {default: false})) {
             break;
           }
         } else if (this.resolution === 'diff') {
