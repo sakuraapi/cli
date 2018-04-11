@@ -118,7 +118,7 @@ export class Bootstrap {
 
     this.shuttingDown = true;
 
-    this.log.info(`Shutting down Donation Server (signal: ${signal})`);
+    this.log.info(`Shutting down SakuraApi (signal: ${signal})`);
 
     await this.sapi
       .close()
