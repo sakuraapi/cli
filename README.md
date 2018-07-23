@@ -2,6 +2,8 @@
 
 SakuraAPI CLI helps you scaffold new projects.
 
+__NOTE__: `sapi` is currently behind sakuraapi/core by many versions. This unfortunately renders it useless. Apologies for the inconvenience. We are accepting volunteers if anyone would like to take over the maintenance of the `sapi` cli :).
+
 `npm install -g @sakuraapi/cli`
 
 `sapi --help`
