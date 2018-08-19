@@ -71,7 +71,7 @@ export class EmailService extends SapiInjectableMixin() {
    * Triggered when a user's password has been changed to notify them of the change.
    */
   async onChangePasswordEmailRequest(user: any, req: Request, res: Response): Promise<void> {
-    debug('onChangePasswordEmailRequest called');
+    debug('.onChangePasswordEmailRequest called');
 
     if (!user) {
       return;
@@ -103,7 +103,7 @@ export class EmailService extends SapiInjectableMixin() {
    * Triggered when a user has requested a forgot password email
    */
   async onForgotPasswordEmailRequest(user: any, token: string, req: Request, res: Response): Promise<void> {
-    debug('onForgotPasswordEmailRequest');
+    debug('.onForgotPasswordEmailRequest called');
 
     if (!user || !token) {
       return;
@@ -136,7 +136,7 @@ export class EmailService extends SapiInjectableMixin() {
    * Triggered when a user requests that email confirmation be resent
    */
   async onResendEmailConfirmation(user: any, token: string, req: Request, res: Response): Promise<void> {
-    debug('onResendEmailConfirmation called');
+    debug('.onResendEmailConfirmation called');
 
     if (!user || !token) {
       return;
@@ -169,7 +169,7 @@ export class EmailService extends SapiInjectableMixin() {
    * Triggered when a user is created
    */
   async onUserCreated(user: any, token: string, req: Request, res: Response): Promise<void> {
-    debug('onUserCreated called');
+    debug('.onUserCreated called');
 
     if (!user || !token) {
       return;

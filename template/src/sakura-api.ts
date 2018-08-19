@@ -1,31 +1,21 @@
 //-<%if(authRole === 'issuer' || authRole === 'audience') {%>
-import {
-  addAuthAudience,
-  AuthAudience,
-  IAuthAudienceOptions
-}                         from '@sakuraapi/auth-audience';
+import { addAuthAudience, AuthAudience, IAuthAudienceOptions }         from '@sakuraapi/auth-audience';
 //-<%}%>
 //-<%if(authRole === 'issuer') {%>
-import {
-  addAuthenticationAuthority,
-  IAuthenticationAuthorityOptions
-}                         from '@sakuraapi/auth-native-authority';
+import { addAuthenticationAuthority, IAuthenticationAuthorityOptions } from '@sakuraapi/auth-native-authority';
 //-<%}%>
-import {SakuraApi}        from '@sakuraapi/core';
-import {json}             from 'body-parser';
-import * as cors          from 'cors';
-import * as debugInit     from 'debug';
-import * as helmet        from 'helmet';
-import {ConfigApi}        from './api/config.api';
-import {BootstrapIndexes} from './config/bootstrap/bootstrap-indexes';
+import { SakuraApi }                         from '@sakuraapi/core';
+import { json }                              from 'body-parser';
+import * as cors                             from 'cors';
+import * as debugInit                        from 'debug';
+import * as helmet                           from 'helmet';
+import { ConfigApi }                         from './api/config-api';
+import { BootstrapIndexes, BootstrapQA }     from './config/bootstrap';
 //-<%if(authRole === 'issuer') {%>
-import {dbs}              from './config/bootstrap/db';
-import {
-  EmailService,
-  EmailServiceFactory
-}                         from './services/email-service';
+import { dbs }                               from './config/bootstrap/db';
+import { EmailService, EmailServiceFactory } from './services/email-service';
 //-<%}%>
-import {LogService}       from './services/log-service';
+import { LogService }                        from './services/log-service';
 
 const debug = debugInit('app:bootstrap');
 
@@ -94,12 +84,7 @@ export class Bootstrap {
       });
     }
 
-    await this.sapi.dbConnections.connectAll();
-
-    // Bootstrap items
-    const wait = [];
-    wait.push(new BootstrapIndexes(this.sapi).run());
-    await Promise.all(wait);
+    await sapiInit.call(this);
 
     process.once('SIGINT', () => this.shutdownServer.call(this, 'SIGINT'));
     process.once('SIGTERM', () => this.shutdownServer.call(this, 'SIGTERM'));
@@ -166,8 +151,25 @@ export class Bootstrap {
   private onUserCreated() {
     (this.emailService as any).onUserCreated(...arguments);
   }
-
   //-<%}%>
+}
+
+async function sapiInit(): Promise<void> {
+  const wait = [];
+
+  await this.sapi.dbConnections.connectAll();
+
+  // bootstrap test data when testing
+  if (process.env.BOOTSTRAP === 'qa') {
+    wait.push(new BootstrapQA(this.sapi).run());
+  }
+
+  // make sure MongoDB indexes are setup
+  wait.push(new BootstrapIndexes(this.sapi).run());
+
+  await Promise.all(wait);
+
+
 }
 
 
