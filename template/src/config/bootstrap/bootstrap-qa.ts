@@ -27,7 +27,7 @@ export class BootstrapQA {
     // create a user for QA purposes following this pattern
     // wait.push(this.addUser(userCol, {
     //   domain: 'default',
-    //   email: 'jp@olivetech.com',
+    //   email: 'jp@someserver.somewhere',
     //   emailVerified: true,
     //   fn: 'J.P.',
     //   ln: 'Poveda'
